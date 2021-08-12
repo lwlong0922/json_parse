@@ -1,7 +1,7 @@
 /* vim: set et ts=3 sw=3 sts=3 ft=c:
  *
  * Copyright (C) 2012, 2013, 2014 James McLaughlin et al.  All rights reserved.
- * https://github.com/lwlong0922/json_parse
+ * https://github.com/udp/json-parser
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -135,7 +135,7 @@ char *strcpy1(char *strDes, char *strSrc)
 	// printf("\nstrSrc--%s\n",strSrc);
 	if (strSrc == NULL)
 		return strDes;
-	strDes = (char *)malloc(strlen(strSrc) + 1); //��һ���ռ������洢�ַ���������'\0'
+	strDes = (char *)malloc(strlen(strSrc) + 1); //多一个空间用来存储字符串结束符'\0'
 	char *p = strDes;
 	while (*strSrc != '\0')
 	{
@@ -1243,7 +1243,7 @@ void JsonAdapter::processObject(JsonObject *jsonObject, json_value *value, int d
 	length = value->u.object.length;
 	for (x = 0; x < length; x++)
 	{
-		if (value->u.object.values[x].value->type == json_object)
+		if (value->u.object.values[x].value->type == json_object || value->u.object.values[x].value->type == json_array)
 		{
 			JsonObject *jsonObjectChild = new JsonObject();
 			processValue(jsonObjectChild, value->u.object.values[x].name, value->u.object.values[x].value, depth + 1);
@@ -1263,7 +1263,7 @@ void JsonAdapter::processArray(JsonObject *jsonObject, json_value *value, int de
 	}
 	length = value->u.array.length;
 	for (x = 0; x < length; x++)
-	{ //����vector
+	{ //开个vector
 		JsonObject *jsonObjectChild = new JsonObject();
 		processValue(jsonObjectChild, "", value->u.array.values[x], depth);
 		jsonObject->vecDt.push_back(make_shared<JsonObject>(*jsonObjectChild));
