@@ -2,11 +2,9 @@
 *
 * Copyright (C) 2012, 2013, 2014 James McLaughlin et al.  All rights reserved.
 * https://github.com/udp/json-parser
-*
 * Adapted to VS2013, and encapsulated the original tree structure,
 * into a more user-friendly, understanding structure.
 * https://github.com/lwlong0922/json_parse 
-*
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions
 * are met:
@@ -1272,7 +1270,26 @@ void JsonAdapter::loadJsonFile(string path)
 	json_value_free(value);
 }
 
+void JsonAdapter::loadJsonFile(string path)
+{
+	ifstream ifstream(path);
+	stringstream buffer;
+	buffer << ifstream.rdbuf();
+	string strTemp = buffer.str();
+	stringToJson(strTemp);
+}
+
 JsonObject JsonAdapter::getJsonObject()
 {
 	return *m_jsonObject;
+}
+
+void JsonAdapter::stringToJson(string strTemp)
+{
+	const char* file_contents = strTemp.c_str();
+	int file_size = strTemp.size();
+	json_char* json = (json_char*)file_contents;
+	json_value* value = json_parse(json, file_size);
+	processValue(m_jsonObject, "", value, 0);
+	json_value_free(value);
 }
