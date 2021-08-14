@@ -1,9 +1,11 @@
-
 /* vim: set et ts=3 sw=3 sts=3 ft=c:
 *
 * Copyright (C) 2012, 2013, 2014 James McLaughlin et al.  All rights reserved.
-* https://github.com/lwlong0922/json_parse
+* https://github.com/udp/json-parser
 *
+* Adapted to VS2013, and encapsulated the original tree structure,
+* into a more user-friendly, understanding structure.
+* https://github.com/lwlong0922/json_parse
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions
 * are met:
@@ -27,6 +29,7 @@
 * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 * SUCH DAMAGE.
 */
+
 
 #pragma once
 #ifndef _JSON_H
@@ -52,11 +55,8 @@
 #include <map>
 #include <vector>
 #include <sstream>
-#define SAFE_DEL(p)  \
-	{                \
-		delete p;    \
-		p = nullptr; \
-	}
+#define SAFE_DEL(p){delete p;p=nullptr;}
+
 
 extern "C"
 {
@@ -71,16 +71,16 @@ extern "C"
 		/* Custom allocator support (leave null to use malloc/free)
 		*/
 
-		void *(*mem_alloc)(size_t, int zero, void *user_data);
-		void (*mem_free)(void *, void *user_data);
+		void * (*mem_alloc) (size_t, int zero, void * user_data);
+		void(*mem_free) (void *, void * user_data);
 
-		void *user_data; /* will be passed to mem_alloc and mem_free */
+		void * user_data;  /* will be passed to mem_alloc and mem_free */
 
-		size_t value_extra; /* how much extra space to allocate for values? */
+		size_t value_extra;  /* how much extra space to allocate for values? */
 
 	} json_settings;
 
-#define json_enable_comments 0x01
+#define json_enable_comments  0x01
 
 	typedef enum
 	{
@@ -99,16 +99,16 @@ extern "C"
 
 	typedef struct _json_object_entry
 	{
-		json_char *name;
+		json_char * name;
 		unsigned int name_length;
 
-		struct _json_value *value;
+		struct _json_value * value;
 
 	} json_object_entry;
 
 	typedef struct _json_value
 	{
-		struct _json_value *parent;
+		struct _json_value * parent;
 
 		json_type type;
 
@@ -121,7 +121,7 @@ extern "C"
 			struct
 			{
 				unsigned int length;
-				json_char *ptr; /* null terminated */
+				json_char * ptr; /* null terminated */
 
 			} string;
 
@@ -129,7 +129,7 @@ extern "C"
 			{
 				unsigned int length;
 
-				json_object_entry *values;
+				json_object_entry * values;
 
 #if defined(__cplusplus) && __cplusplus >= 201103L
 				decltype(values) begin() const
@@ -147,7 +147,7 @@ extern "C"
 			struct
 			{
 				unsigned int length;
-				struct _json_value **values;
+				struct _json_value ** values;
 
 #if defined(__cplusplus) && __cplusplus >= 201103L
 				decltype(values) begin() const
@@ -166,8 +166,8 @@ extern "C"
 
 		union
 		{
-			struct _json_value *next_alloc;
-			void *object_mem;
+			struct _json_value * next_alloc;
+			void * object_mem;
 
 		} _reserved;
 
@@ -179,19 +179,22 @@ extern "C"
 
 #endif
 
+
 		/* Some C++ operator sugar */
 
 #ifdef __cplusplus
 
 	public:
+
 		inline _json_value()
 		{
-			memset(this, 0, sizeof(_json_value));
+			memset(this, 0, sizeof (_json_value));
 		}
 
-		inline const struct _json_value &operator[](int index) const
+		inline const struct _json_value &operator [] (int index) const
 		{
-			if (type != json_array || index < 0 || ((unsigned int)index) >= u.array.length)
+			if(type != json_array || index < 0
+			   || ((unsigned int) index) >= u.array.length)
 			{
 				return json_value_none;
 			}
@@ -199,21 +202,21 @@ extern "C"
 			return *u.array.values[index];
 		}
 
-		inline const struct _json_value &operator[](const char *index) const
+		inline const struct _json_value &operator [] (const char * index) const
 		{
-			if (type != json_object)
+			if(type != json_object)
 				return json_value_none;
 
-			for (unsigned int i = 0; i < u.object.length; ++i)
-				if (!strcmp(u.object.values[i].name, index))
-					return *u.object.values[i].value;
+			for(unsigned int i = 0; i < u.object.length; ++i)
+			if(!strcmp(u.object.values[i].name, index))
+				return *u.object.values[i].value;
 
 			return json_value_none;
 		}
 
-		inline operator const char *() const
+		inline operator const char * () const
 		{
-			switch (type)
+			switch(type)
 			{
 			case json_string:
 				return u.string.ptr;
@@ -223,15 +226,15 @@ extern "C"
 			};
 		}
 
-		inline operator json_int_t() const
+		inline operator json_int_t () const
 		{
-			switch (type)
+			switch(type)
 			{
 			case json_integer:
 				return u.integer;
 
 			case json_double:
-				return (json_int_t)u.dbl;
+				return (json_int_t) u.dbl;
 
 			default:
 				return 0;
@@ -240,7 +243,7 @@ extern "C"
 
 		inline operator bool() const
 		{
-			if (type != json_boolean)
+			if(type != json_boolean)
 				return false;
 
 			return u.boolean != 0;
@@ -248,10 +251,10 @@ extern "C"
 
 		inline operator double() const
 		{
-			switch (type)
+			switch(type)
 			{
 			case json_integer:
-				return (double)u.integer;
+				return (double) u.integer;
 
 			case json_double:
 				return u.dbl;
@@ -265,21 +268,22 @@ extern "C"
 
 	} json_value;
 
-	json_value *json_parse(const json_char *json,
-						   size_t length);
+	json_value * json_parse(const json_char * json,
+							size_t length);
 
 #define json_error_max 128
-	json_value *json_parse_ex(json_settings *settings,
-							  const json_char *json,
-							  size_t length,
-							  char *error);
+	json_value * json_parse_ex(json_settings * settings,
+							   const json_char * json,
+							   size_t length,
+							   char * error);
 
 	void json_value_free(json_value *);
+
 
 	/* Not usually necessary, unless you used a custom mem_alloc and now want to
 	* use a custom mem_free.
 	*/
-	void json_value_free_ex(json_settings *settings,
+	void json_value_free_ex(json_settings * settings,
 							json_value *);
 
 #ifdef __cplusplus
@@ -292,18 +296,20 @@ using namespace std;
 class JsonObject
 {
 public:
-	JsonObject(){};
+	JsonObject()
+	{
+	};
 	~JsonObject();
-	void *at(const map<string, shared_ptr<void>>::key_type &_Keyval);
-	bool getBool(const map<string, shared_ptr<void>>::key_type &_Keyval);
-	int getInteger(const map<string, shared_ptr<void>>::key_type &_Keyval);
-	double getDouble(const map<string, shared_ptr<void>>::key_type &_Keyval);
-	string getString(const map<string, shared_ptr<void>>::key_type &_Keyval);
-	JsonObject getObject(const map<string, shared_ptr<void>>::key_type &_Keyval);
-	void *operator[](const map<string, shared_ptr<void>>::key_type &_Keyval);
-	JsonObject at(const int &index);
+	void* at(const map<string, shared_ptr<void>>::key_type& _Keyval);
+	bool getBool(const map<string, shared_ptr<void>>::key_type& _Keyval);
+	int getInteger(const map<string, shared_ptr<void>>::key_type& _Keyval);
+	double getDouble(const map<string, shared_ptr<void>>::key_type& _Keyval);
+	string getString(const map<string, shared_ptr<void>>::key_type& _Keyval);
+	JsonObject getObject(const map<string, shared_ptr<void>>::key_type& _Keyval);
+	void* operator[](const map<string, shared_ptr<void>>::key_type& _Keyval);
+	JsonObject at(const int& index);
 	int getArraySize();
-	JsonObject operator[](const int &index);
+	JsonObject operator[](const int& index);
 	map<string, shared_ptr<void>> mapDt;
 	vector<shared_ptr<JsonObject>> vecDt;
 };
@@ -314,12 +320,11 @@ public:
 	JsonAdapter();
 	JsonAdapter(string path);
 	~JsonAdapter();
-	void processValue(JsonObject *jsonObject, char *name, json_value *value, int depth);
-	void processObject(JsonObject *jsonObject, json_value *value, int depth);
-	void processArray(JsonObject *jsonObject, json_value *value, int depth);
+	void processValue(JsonObject* jsonObject, char* name, json_value* value, int depth);
+	void processObject(JsonObject* jsonObject, json_value* value, int depth);
+	void processArray(JsonObject* jsonObject, json_value* value, int depth);
 	void loadJsonFile(string path);
 	JsonObject getJsonObject();
-
 private:
-	JsonObject *m_jsonObject;
+	JsonObject* m_jsonObject;
 };
