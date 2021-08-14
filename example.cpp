@@ -1,6 +1,4 @@
 #include "json.h"
-void loadFile(const string &strPath)
-{
 //[
 //	{
 //		"nId": 2001,
@@ -21,7 +19,8 @@ void loadFile(const string &strPath)
 //		"nType" : 0
 //	}
 //]
-    
+void loadFile(const string &strPath)
+{   
     //传入路径，生成适配器
     auto jba = new JsonAdapter(strPath);
     //拿到json对象
