@@ -2,9 +2,11 @@
 *
 * Copyright (C) 2012, 2013, 2014 James McLaughlin et al.  All rights reserved.
 * https://github.com/udp/json-parser
+*
 * Adapted to VS2013, and encapsulated the original tree structure,
 * into a more user-friendly, understanding structure.
 * https://github.com/lwlong0922/json_parse 
+*
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions
 * are met:
